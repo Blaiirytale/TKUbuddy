@@ -39,7 +39,7 @@ export default function GraduationProgress({ done, total, onPress }: Props) {
     </Pressable>
   );
 }
-
+//style here fellaaz
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.card,
