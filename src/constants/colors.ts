@@ -1,5 +1,5 @@
 // All the colors from the prototype, in one place.
-// If you want to change a color later, change it here and the whole app updates.
+// If you want to change a color later, change it here and the whole app:*
 export const Colors = {
     background: '#A67A43', // brown paper background
     card: '#262422',       // dark cards and bottom bar
@@ -8,4 +8,6 @@ export const Colors = {
     teal: '#35AECF',       // the big + button
     white: '#FFFFFF',
     muted: '#CFC8C0',      // grey text
+    gold: '#E9B949' ,
+    grey: '#8A8580',
   };
