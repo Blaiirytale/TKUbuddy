@@ -10,4 +10,6 @@ export const Colors = {
     muted: '#CFC8C0',      // grey text
     gold: '#E9B949' ,
     grey: '#8A8580',
+    sheet: '#5B4631',      // dark brown login panel
+    link: '#5BB5E8',       // blue links stuff
   };
