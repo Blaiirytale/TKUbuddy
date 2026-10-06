@@ -1,19 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 
-// TKU course selection site (add and drop)
 const TKU_COURSE_URL = 'https://www.ais.tku.edu.tw/elecos_english/';
 
 type Props = {
-  onPlusPress?: () => void; 
+  onPlusPress?: () => void;
 };
 
 export default function BottomBar({ onPlusPress }: Props) {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
-  // open the TKU website i
   async function openTkuSite() {
     try {
       await Linking.openURL(TKU_COURSE_URL);
@@ -31,18 +31,16 @@ export default function BottomBar({ onPlusPress }: Props) {
         <Ionicons name="search-outline" size={28} color={Colors.white} />
       </Pressable>
 
-      {/* empty space in the middle, where the + button sits */}
       <View style={styles.icon} />
 
-      {/* link icon opens the TKU course selection site */}
       <Pressable style={styles.icon} onPress={openTkuSite}>
         <Ionicons name="link-outline" size={28} color={Colors.white} />
       </Pressable>
-      <Pressable style={styles.icon}>
+      {/* gear icon opens Settings */}
+      <Pressable style={styles.icon} onPress={() => router.push('/settings')}>
         <Ionicons name="settings-outline" size={28} color={Colors.white} />
       </Pressable>
 
-      {/* the big teal + button, floating above the bar */}
       <Pressable style={styles.plus} onPress={onPlusPress}>
         <Ionicons name="add" size={46} color={Colors.white} />
       </Pressable>

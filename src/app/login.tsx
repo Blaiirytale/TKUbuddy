@@ -6,6 +6,7 @@ import {
     Animated,
     Easing,
     KeyboardAvoidingView,
+    Linking,
     Platform,
     Pressable,
     ScrollView,
@@ -30,7 +31,7 @@ export default function LoginScreen() {
   const logoScale = useRef(new Animated.Value(1)).current;
   const sheetY = useRef(new Animated.Value(400)).current; // 400px down
 
-  // one animation value PER LETTER, all starting at 0 (resting position)
+
   const letterY = useRef(APP_NAME.split('').map(() => new Animated.Value(0))).current;
 
   const logoLoop = useRef<Animated.CompositeAnimation | null>(null);
@@ -75,7 +76,7 @@ export default function LoginScreen() {
   }
 
   useEffect(() => {
-    // panel slides up when the screen opens
+    
     Animated.timing(sheetY, {
       toValue: 0,
       duration: 700,
@@ -83,19 +84,19 @@ export default function LoginScreen() {
       useNativeDriver: true,
     }).start();
 
-    // logo wiggles every 2 seconds
+    
     logoLoop.current = Animated.loop(
       Animated.sequence([wiggleOnce(120), Animated.delay(2000)])
     );
     logoLoop.current.start();
 
-    // letters bounce one by one, rest 1.5 seconds, repeat
+
     lettersLoop.current = Animated.loop(
       Animated.sequence([bounceLetters(), Animated.delay(1500)])
     );
     lettersLoop.current.start();
 
-    // stop everything when leaving the screen
+    
     return () => {
       logoLoop.current?.stop();
       lettersLoop.current?.stop();
@@ -103,12 +104,12 @@ export default function LoginScreen() {
   }, []);
 
   function handleLogin() {
-    // BACKEND TODO: check the student ID and password here before continuing.
+    // BACKEND TODO: check the student ID and password here before continue
 
     logoLoop.current?.stop();
     lettersLoop.current?.stop();
 
-    // logo wiggles + bounces and letters do one last wave, THEN go to the homepage
+
     Animated.parallel([
       wiggleOnce(80),
       Animated.sequence([
@@ -119,11 +120,13 @@ export default function LoginScreen() {
     ]).start(() => router.replace('/home'));
   }
 
-  function handleForgotPassword() {
-    Alert.alert(
-      'Forgot password',
-      'Please reset your password through the TKU student portal, or contact the IT center.'
-    );
+
+async function handleForgotPassword() {
+    try {
+      await Linking.openURL('https://sso.tku.edu.tw/j_self/pswdself/goAction.do?ln=en_US');
+    } catch {
+      Alert.alert('Could not open link', 'Please check your internet connection and try again.');
+    }
   }
 
   return (

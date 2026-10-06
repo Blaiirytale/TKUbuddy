@@ -1,19 +1,21 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Avatar from '../components/Avatar';
 import BottomBar from '../components/BottomBar';
 import GeneralKnowledge from '../components/GeneralKnowledge';
 import GraduationProgress from '../components/GraduationProgress';
 import QuickAccess from '../components/QuickAccess';
 import { Colors } from '../constants/colors';
+import { useProfile } from '../context/ProfileContext';
 import { GECategory, fetchGECategories } from '../data/geData';
 
+//temporary
 const STUDENT_ID = '411000001';
-const STUDENT_NAME = 'Sasa';
 const CREDITS_DONE = 116;
 
 export default function HomeScreen() {
+  const { displayName } = useProfile(); // the name chosen in Settings
   const [geCategories, setGeCategories] = useState<GECategory[]>([]);
 
   useEffect(() => {
@@ -24,6 +26,7 @@ export default function HomeScreen() {
     <View style={styles.screen}>
       <SafeAreaView edges={['top']} style={styles.safe}>
         <ScrollView contentContainerStyle={styles.content}>
+          {/* HEADER */}
           <View style={styles.header}>
             <Image
               source={require('../../assets/app-images/tku_logo.png')}
@@ -31,9 +34,11 @@ export default function HomeScreen() {
             />
             <View style={styles.headerText}>
               <Text style={styles.greeting}>Good Morning!</Text>
-              <Text style={styles.name}>{STUDENT_NAME}</Text>
+              <Text style={styles.name} numberOfLines={1}>
+                {displayName}
+              </Text>
             </View>
-            <Ionicons name="person-circle" size={56} color={Colors.white} />
+            <Avatar size={56} />
           </View>
 
           <GraduationProgress
