@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,19 +9,29 @@ import GraduationProgress from '../components/GraduationProgress';
 import QuickAccess from '../components/QuickAccess';
 import { Colors } from '../constants/colors';
 import { useProfile } from '../context/ProfileContext';
-import { GECategory, fetchGECategories } from '../data/geData';
+import { fetchGECategories, GECategory } from '../data/geData';
 
-//temporary
+// TEMPORARY test data. The backend teammate will replace these with database data later.
 const STUDENT_ID = '411000001';
 const CREDITS_DONE = 116;
 
 export default function HomeScreen() {
-  const { displayName } = useProfile(); // the name chosen in Settings
+  const router = useRouter();
+  const { displayName } = useProfile();
   const [geCategories, setGeCategories] = useState<GECategory[]>([]);
 
   useEffect(() => {
     fetchGECategories(STUDENT_ID).then(setGeCategories);
   }, []);
+
+  // decide where each Quick Access button goes
+  function handleQuickAccess(id: string) {
+    if (id === 'suggestions') {
+      router.push('/suggestions');
+    } else {
+      Alert.alert('Coming soon', `You tapped: ${id}`);
+    }
+  }
 
   return (
     <View style={styles.screen}>
@@ -47,7 +58,7 @@ export default function HomeScreen() {
             onPress={() => Alert.alert('Course history', 'Coming soon!')}
           />
 
-          <QuickAccess onPressItem={(id) => Alert.alert('Coming soon', `You tapped: ${id}`)} />
+          <QuickAccess onPressItem={handleQuickAccess} />
 
           <GeneralKnowledge
             categories={geCategories}
