@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Colors } from '../constants/colors';
+import { ThemeColors } from '../constants/colors';
+import { FontScaler, useThemedStyles } from '../context/ThemeContext';
 
 type Props = {
   done: number;
@@ -8,6 +9,7 @@ type Props = {
 };
 
 export default function GraduationProgress({ done, total, onPress }: Props) {
+  const styles = useThemedStyles(makeStyles);
   const remaining = Math.max(total - done, 0);
   const percent = Math.min((done / total) * 100, 100);
   const finished = done >= total;
@@ -40,34 +42,35 @@ export default function GraduationProgress({ done, total, onPress }: Props) {
   );
 }
 //style here fellaaz
-const styles = StyleSheet.create({
+// styles are built from the current theme colors and font size
+const makeStyles = (colors: ThemeColors, fs: FontScaler) => StyleSheet.create({
   card: {
-    backgroundColor: Colors.card,
+    backgroundColor: colors.card,
     borderRadius: 20,
     padding: 20,
     marginBottom: 24,
   },
   title: {
-    color: Colors.white,
-    fontSize: 18,
+    color: colors.white,
+    fontSize: fs(18),
     fontWeight: 'bold',
   },
   underline: {
     height: 1.5,
     width: 170,
-    backgroundColor: Colors.muted,
+    backgroundColor: colors.muted,
     marginTop: 6,
     marginBottom: 16,
   },
   track: {
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.white,
+    backgroundColor: colors.white,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    backgroundColor: Colors.coral,
+    backgroundColor: colors.coral,
     borderRadius: 22,
   },
   barTextBox: {
@@ -80,13 +83,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   barText: {
-    color: Colors.white,
+    color: colors.white,
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: fs(16),
   },
   remaining: {
-    color: Colors.white,
-    fontSize: 14,
+    color: colors.white,
+    fontSize: fs(14),
     fontWeight: '600',
     marginTop: 10,
   },
@@ -98,11 +101,11 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   keepGoing: {
-    color: Colors.white,
+    color: colors.white,
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: fs(14),
   },
   mascot: {
-    fontSize: 56,
+    fontSize: fs(56),
   },
 });

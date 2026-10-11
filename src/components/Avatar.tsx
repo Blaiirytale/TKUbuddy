@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'react-native';
-import { Colors } from '../constants/colors';
 import { useProfile } from '../context/ProfileContext';
+import { useTheme } from '../context/ThemeContext';
 
 type Props = {
   size?: number;
@@ -9,6 +9,7 @@ type Props = {
 
 export default function Avatar({ size = 56 }: Props) {
   const { photoUri } = useProfile();
+  const { colors } = useTheme();
 
   if (photoUri) {
     return (
@@ -18,5 +19,5 @@ export default function Avatar({ size = 56 }: Props) {
       />
     );
   }
-  return <Ionicons name="person-circle" size={size} color={Colors.white} />;
+  return <Ionicons name="person-circle" size={size} color={colors.white} />;
 }

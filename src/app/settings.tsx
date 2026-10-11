@@ -14,14 +14,15 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Avatar from '../components/Avatar';
-import { Colors } from '../constants/colors';
+import { THEMES, ThemeColors } from '../constants/colors';
 import { useProfile } from '../context/ProfileContext';
+import { FONT_SIZES, FontScaler, useTheme, useThemedStyles } from '../context/ThemeContext';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
-
+// TEMPORARY: will come from the login later
 const REGISTERED_NAME = 'Pramesti';
 const STUDENT_ID = '411000001';
 const MAX_NAME_LENGTH = 30;
@@ -30,14 +31,21 @@ const LANGUAGE_LABELS = { en: 'English', zh: '中文' };
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { displayName, setDisplayName, photoUri, setPhotoUri, language, setLanguage } =
     useProfile();
+  const { colors, theme, setThemeId, fontSizeId, setFontSizeId } = useTheme();
+  const styles = useThemedStyles(makeStyles);
 
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
 
+
+  const [choosingTheme, setChoosingTheme] = useState(false);
+
+  // display
   function openNameEditor() {
-    setNameDraft(displayName); // start with the current name
+    setNameDraft(displayName);
     setEditingName(true);
   }
 
@@ -47,12 +55,12 @@ export default function SettingsScreen() {
 
   function saveName() {
     const trimmed = nameDraft.trim();
-
+    
     setDisplayName(trimmed || REGISTERED_NAME);
     setEditingName(false);
   }
 
-  
+  // pfp
   async function pickFromLibrary() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -99,7 +107,7 @@ export default function SettingsScreen() {
     ]);
   }
 
-  // ---------- LOG OUT ----------
+  //logout
   function handleLogout() {
     Alert.alert('Log out', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -120,7 +128,7 @@ export default function SettingsScreen() {
       <SafeAreaView edges={['top']} style={styles.safe}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={12}>
-            <Ionicons name="chevron-back" size={28} color={Colors.white} />
+            <Ionicons name="chevron-back" size={28} color={colors.white} />
           </Pressable>
           <Text style={styles.headerTitle}>Settings</Text>
           <View style={{ width: 28 }} />
@@ -132,14 +140,13 @@ export default function SettingsScreen() {
             <Pressable onPress={handleChangePhoto}>
               <Avatar size={96} />
               <View style={styles.cameraBadge}>
-                <Ionicons name="camera" size={16} color={Colors.white} />
+                <Ionicons name="camera" size={16} color={colors.white} />
               </View>
             </Pressable>
 
-            {/* tap the name to edit it */}
             <Pressable onPress={openNameEditor} style={styles.nameRow} hitSlop={8}>
               <Text style={styles.name}>{displayName}</Text>
-              <Ionicons name="pencil" size={16} color={Colors.muted} />
+              <Ionicons name="pencil" size={16} color={colors.muted} />
             </Pressable>
             <Text style={styles.studentId}>{STUDENT_ID}</Text>
 
@@ -176,9 +183,52 @@ export default function SettingsScreen() {
           {/* DISPLAY */}
           <Text style={styles.sectionTitle}>DISPLAY</Text>
           <View style={styles.card}>
-            <SettingsRow icon="color-palette-outline" label="Background" comingSoon />
+            <SettingsRow
+              icon="color-palette-outline"
+              label="Background"
+              value={theme.name}
+              onPress={() => setChoosingTheme(true)}
+            />
             <View style={styles.divider} />
-            <SettingsRow icon="text-outline" label="Font size" comingSoon />
+
+            {/* FONT SIZE: three buttons side by side */}
+            <View style={styles.fontBlock}>
+              <View style={styles.fontHeader}>
+                <View style={styles.rowIcon}>
+                  <Ionicons name="text-outline" size={20} color={colors.white} />
+                </View>
+                <Text style={styles.rowLabel}>Font size</Text>
+              </View>
+
+              <View style={styles.segment}>
+                {FONT_SIZES.map((option) => {
+                  const active = option.id === fontSizeId;
+                  return (
+                    <Pressable
+                      key={option.id}
+                      onPress={() => setFontSizeId(option.id)}
+                      style={[styles.segmentItem, active && styles.segmentItemActive]}
+                    >
+                      {/* each "Aa" is drawn at its own size, as a preview */}
+                      <Text
+                        style={[
+                          styles.segmentLetters,
+                          { fontSize: Math.round(18 * option.scale) },
+                          active && styles.segmentTextActive,
+                        ]}
+                      >
+                        Aa
+                      </Text>
+                      <Text style={[styles.segmentLabel, active && styles.segmentTextActive]}>
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <Text style={styles.fontPreview}>This is how text looks in TKUBuddy.</Text>
+            </View>
           </View>
 
           {/* LOG OUT */}
@@ -186,7 +236,7 @@ export default function SettingsScreen() {
             onPress={handleLogout}
             style={({ pressed }) => [styles.logoutButton, pressed && styles.pressed]}
           >
-            <Ionicons name="log-out-outline" size={20} color={Colors.white} />
+            <Ionicons name="log-out-outline" size={20} color={colors.white} />
             <Text style={styles.logoutText}>LOG OUT</Text>
           </Pressable>
 
@@ -194,7 +244,69 @@ export default function SettingsScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      {}
+      {/* BACKGROUND (THEME) PICKER */}
+      <Modal
+        visible={choosingTheme}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setChoosingTheme(false)}
+      >
+        <View style={styles.backdropBottom}>
+          {/* tapping the dark area closes the picker */}
+          <Pressable style={styles.flex} onPress={() => setChoosingTheme(false)} />
+
+          <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.modalTitle}>Background</Text>
+            <Text style={styles.modalHint}>Pick a color combination. It changes the whole app.</Text>
+
+            <View style={styles.themeGrid}>
+              {THEMES.map((t) => {
+                const active = t.id === theme.id;
+                return (
+                  <Pressable
+                    key={t.id}
+                    onPress={() => setThemeId(t.id)}
+                    style={[styles.themeOption, active && styles.themeOptionActive]}
+                  >
+                    {/* a tiny preview drawn in that theme's own colors */}
+                    <View style={[styles.themePreview, { backgroundColor: t.colors.background }]}>
+                      <View style={[styles.previewCard, { backgroundColor: t.colors.card }]}>
+                        <View style={styles.previewTrack}>
+                          <View style={[styles.previewFill, { backgroundColor: t.colors.coral }]} />
+                        </View>
+                        <View style={styles.previewDots}>
+                          <View style={[styles.previewDot, { backgroundColor: t.colors.coral }]} />
+                          <View style={[styles.previewDot, { backgroundColor: t.colors.teal }]} />
+                          <View style={[styles.previewDot, { backgroundColor: t.colors.gold }]} />
+                        </View>
+                      </View>
+                      {active && (
+                        <View style={styles.checkBadge}>
+                          <Ionicons name="checkmark" size={14} color={colors.white} />
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.themeName}>{t.name}</Text>
+                    <Text style={styles.themeDescription} numberOfLines={1}>
+                      {t.description}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Pressable
+              onPress={() => setChoosingTheme(false)}
+              style={({ pressed }) => [styles.doneButton, pressed && styles.pressed]}
+            >
+              <Text style={styles.doneText}>DONE</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* DISPLAY NAME POP-UP */}
       <Modal
         visible={editingName}
         transparent
@@ -227,13 +339,21 @@ export default function SettingsScreen() {
             <View style={styles.modalButtons}>
               <Pressable
                 onPress={closeNameEditor}
-                style={({ pressed }) => [styles.modalButton, styles.cancelButton, pressed && styles.pressed]}
+                style={({ pressed }) => [
+                  styles.modalButton,
+                  styles.cancelButton,
+                  pressed && styles.pressed,
+                ]}
               >
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </Pressable>
               <Pressable
                 onPress={saveName}
-                style={({ pressed }) => [styles.modalButton, styles.saveButton, pressed && styles.pressed]}
+                style={({ pressed }) => [
+                  styles.modalButton,
+                  styles.saveButton,
+                  pressed && styles.pressed,
+                ]}
               >
                 <Text style={styles.modalButtonText}>Save</Text>
               </Pressable>
@@ -245,7 +365,7 @@ export default function SettingsScreen() {
   );
 }
 
-// ---------- ONE ROW IN A SETTINGS CARD ----------
+
 type RowProps = {
   icon: IconName;
   label: string;
@@ -255,6 +375,9 @@ type RowProps = {
 };
 
 function SettingsRow({ icon, label, value, onPress, comingSoon = false }: RowProps) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   function handlePress() {
     if (comingSoon) {
       Alert.alert(label, 'This feature is coming soon!');
@@ -269,7 +392,7 @@ function SettingsRow({ icon, label, value, onPress, comingSoon = false }: RowPro
       style={({ pressed }) => [styles.row, pressed && styles.pressed, comingSoon && styles.dimmed]}
     >
       <View style={styles.rowIcon}>
-        <Ionicons name={icon} size={20} color={Colors.white} />
+        <Ionicons name={icon} size={20} color={colors.white} />
       </View>
       <Text style={styles.rowLabel}>{label}</Text>
 
@@ -283,14 +406,16 @@ function SettingsRow({ icon, label, value, onPress, comingSoon = false }: RowPro
         </Text>
       ) : null}
 
-      <Ionicons name="chevron-forward" size={18} color={Colors.muted} />
+      <Ionicons name="chevron-forward" size={18} color={colors.muted} />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: Colors.background },
+// styles are built from the current theme colors and font size
+const makeStyles = (colors: ThemeColors, fs: FontScaler) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
   safe: { flex: 1 },
+  flex: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -298,12 +423,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
-  headerTitle: { color: Colors.white, fontSize: 22, fontWeight: 'bold' },
+  headerTitle: { color: colors.white, fontSize: fs(22), fontWeight: 'bold' },
   content: { padding: 24, paddingTop: 8, paddingBottom: 48 },
 
   profileCard: {
     alignItems: 'center',
-    backgroundColor: Colors.card,
+    backgroundColor: colors.card,
     borderRadius: 20,
     padding: 24,
     marginBottom: 28,
@@ -315,38 +440,28 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.coral,
+    backgroundColor: colors.coral,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: Colors.card,
+    borderColor: colors.card,
   },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
-  },
-  name: { color: Colors.white, fontSize: 22, fontWeight: 'bold' },
-  studentId: { color: Colors.muted, fontSize: 14, marginTop: 2, marginBottom: 12 },
-  link: { color: Colors.link, fontSize: 14, textDecorationLine: 'underline' },
-  removeLink: { color: Colors.coral, fontSize: 13, marginTop: 8 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
+  name: { color: colors.white, fontSize: fs(22), fontWeight: 'bold' },
+  studentId: { color: colors.muted, fontSize: fs(14), marginTop: 2, marginBottom: 12 },
+  link: { color: colors.link, fontSize: fs(14), textDecorationLine: 'underline' },
+  removeLink: { color: colors.coral, fontSize: fs(13), marginTop: 8 },
 
   sectionTitle: {
-    color: Colors.white,
-    fontSize: 13,
+    color: colors.white,
+    fontSize: fs(13),
     fontWeight: 'bold',
     letterSpacing: 1,
     marginBottom: 8,
     marginLeft: 4,
   },
-  card: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    marginBottom: 24,
-    overflow: 'hidden',
-  },
-  divider: { height: 1, backgroundColor: Colors.cardLight, marginLeft: 60 },
+  card: { backgroundColor: colors.card, borderRadius: 16, marginBottom: 24, overflow: 'hidden' },
+  divider: { height: 1, backgroundColor: colors.cardLight, marginLeft: 60 },
 
   row: {
     flexDirection: 'row',
@@ -359,21 +474,46 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: Colors.cardLight,
+    backgroundColor: colors.cardLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rowLabel: { flex: 1, color: Colors.white, fontSize: 16 },
-  rowValue: { color: Colors.muted, fontSize: 14, maxWidth: 130 },
+  rowLabel: { flex: 1, color: colors.white, fontSize: fs(16) },
+  rowValue: { color: colors.muted, fontSize: fs(14), maxWidth: 130 },
   soonBadge: {
-    backgroundColor: Colors.cardLight,
+    backgroundColor: colors.cardLight,
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
-  soonText: { color: Colors.gold, fontSize: 10, fontWeight: 'bold' },
+  soonText: { color: colors.gold, fontSize: fs(10), fontWeight: 'bold' },
   dimmed: { opacity: 0.6 },
   pressed: { opacity: 0.7 },
+
+  // font size
+  fontBlock: { paddingVertical: 14, paddingHorizontal: 16 },
+  fontHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  segment: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+    padding: 4,
+    borderRadius: 14,
+    backgroundColor: colors.cardLight,
+  },
+  segmentItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    height: 58,
+    paddingBottom: 6,
+    borderRadius: 10,
+  },
+  segmentItemActive: { backgroundColor: colors.coral },
+  segmentLetters: { color: colors.white, fontWeight: 'bold' },
+  segmentLabel: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  segmentTextActive: { color: colors.white },
+  fontPreview: { color: colors.muted, fontSize: fs(14), marginTop: 12, textAlign: 'center' },
 
   logoutButton: {
     flexDirection: 'row',
@@ -382,38 +522,110 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 50,
     borderRadius: 25,
-    backgroundColor: Colors.coral,
+    backgroundColor: colors.coral,
     marginTop: 8,
   },
-  logoutText: { color: Colors.white, fontSize: 16, fontWeight: 'bold', letterSpacing: 1 },
-  version: { color: Colors.white, opacity: 0.6, fontSize: 12, textAlign: 'center', marginTop: 20 },
+  logoutText: { color: colors.white, fontSize: fs(16), fontWeight: 'bold', letterSpacing: 1 },
+  version: {
+    color: colors.white,
+    opacity: 0.6,
+    fontSize: fs(12),
+    textAlign: 'center',
+    marginTop: 20,
+  },
 
-  // pop-up
+  // background picker (bottom sheet)
+  backdropBottom: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.55)' },
+  sheet: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+  sheetHandle: {
+    alignSelf: 'center',
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.cardLight,
+    marginBottom: 14,
+  },
+  themeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 12,
+  },
+  themeOption: {
+    width: '48%',
+    padding: 6,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  themeOptionActive: { borderColor: colors.white },
+  themePreview: {
+    height: 74,
+    borderRadius: 12,
+    padding: 10,
+    justifyContent: 'flex-end',
+  },
+  previewCard: { borderRadius: 8, padding: 8 },
+  previewTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+  },
+  previewFill: { width: '70%', height: '100%', borderRadius: 4 },
+  previewDots: { flexDirection: 'row', gap: 5, marginTop: 6 },
+  previewDot: { width: 10, height: 10, borderRadius: 5 },
+  checkBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.coral,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  themeName: { color: colors.white, fontSize: fs(14), fontWeight: 'bold', marginTop: 8 },
+  themeDescription: { color: colors.muted, fontSize: fs(11), marginTop: 1 },
+  doneButton: {
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.coral,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  doneText: { color: colors.white, fontSize: fs(15), fontWeight: 'bold', letterSpacing: 1 },
+
+  // display name pop-up
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)', // dark see-through layer behind the pop-up
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
     justifyContent: 'center',
     padding: 32,
   },
-  modalCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 20,
-    padding: 24,
-  },
-  modalTitle: { color: Colors.white, fontSize: 20, fontWeight: 'bold' },
-  modalHint: { color: Colors.muted, fontSize: 13, marginTop: 4, marginBottom: 16 },
+  modalCard: { backgroundColor: colors.card, borderRadius: 20, padding: 24 },
+  modalTitle: { color: colors.white, fontSize: fs(20), fontWeight: 'bold' },
+  modalHint: { color: colors.muted, fontSize: fs(13), marginTop: 4, marginBottom: 16 },
   modalInput: {
     height: 48,
     borderRadius: 24,
-    backgroundColor: Colors.white,
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 18,
-    fontSize: 16,
+    fontSize: fs(16),
     color: '#222222',
   },
   counter: {
     alignSelf: 'flex-end',
-    color: Colors.muted,
-    fontSize: 12,
+    color: colors.muted,
+    fontSize: fs(12),
     marginTop: 6,
     marginRight: 8,
   },
@@ -425,7 +637,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelButton: { backgroundColor: Colors.cardLight },
-  saveButton: { backgroundColor: Colors.coral },
-  modalButtonText: { color: Colors.white, fontSize: 15, fontWeight: 'bold' },
+  cancelButton: { backgroundColor: colors.cardLight },
+  saveButton: { backgroundColor: colors.coral },
+  modalButtonText: { color: colors.white, fontSize: fs(15), fontWeight: 'bold' },
 });

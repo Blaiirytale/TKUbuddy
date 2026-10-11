@@ -7,15 +7,17 @@ import BottomBar from '../components/BottomBar';
 import GeneralKnowledge from '../components/GeneralKnowledge';
 import GraduationProgress from '../components/GraduationProgress';
 import QuickAccess from '../components/QuickAccess';
-import { Colors } from '../constants/colors';
+import { ThemeColors } from '../constants/colors';
 import { useProfile } from '../context/ProfileContext';
 import { fetchGECategories, GECategory } from '../data/geData';
+import { FontScaler, useThemedStyles } from '../context/ThemeContext';
 
 // TEMPORARY test data. The backend teammate will replace these with database data later.
 const STUDENT_ID = '411000001';
 const CREDITS_DONE = 116;
 
 export default function HomeScreen() {
+  const styles = useThemedStyles(makeStyles);
   const router = useRouter();
   const { displayName } = useProfile();
   const [geCategories, setGeCategories] = useState<GECategory[]>([]);
@@ -73,8 +75,9 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: Colors.background },
+// styles are built from the current theme colors and font size
+const makeStyles = (colors: ThemeColors, fs: FontScaler) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
   safe: { flex: 1 },
   content: { padding: 24, paddingBottom: 60 },
   header: {
@@ -89,6 +92,6 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   headerText: { flex: 1 },
-  greeting: { fontSize: 20, color: Colors.white },
-  name: { fontSize: 32, fontWeight: 'bold', color: Colors.white },
+  greeting: { fontSize: fs(20), color: colors.white },
+  name: { fontSize: fs(32), fontWeight: 'bold', color: colors.white },
 });

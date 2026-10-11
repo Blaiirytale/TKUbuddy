@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Colors } from '../constants/colors';
+import { ThemeColors } from '../constants/colors';
 import { GECategory } from '../data/geData';
 import GECard from './GECard';
+import { FontScaler, useThemedStyles } from '../context/ThemeContext';
 
 type Props = {
   categories: GECategory[];
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function GeneralKnowledge({ categories, onSeeAll, onFindCourse }: Props) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.section}>
       <View style={styles.headerRow}>
@@ -33,7 +35,8 @@ export default function GeneralKnowledge({ categories, onSeeAll, onFindCourse }:
   );
 }
 
-const styles = StyleSheet.create({
+// styles are built from the current theme colors and font size
+const makeStyles = (colors: ThemeColors, fs: FontScaler) => StyleSheet.create({
   section: {
     marginBottom: 24,
   },
@@ -43,18 +46,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heading: {
-    color: Colors.white,
-    fontSize: 15,
+    color: colors.white,
+    fontSize: fs(15),
     fontWeight: 'bold',
   },
   seeAll: {
-    color: Colors.gold,
-    fontSize: 14,
+    color: colors.gold,
+    fontSize: fs(14),
     textDecorationLine: 'underline',
   },
   divider: {
     height: 1.5,
-    backgroundColor: Colors.card,
+    backgroundColor: colors.card,
     marginTop: 6,
     marginBottom: 14,
   },
@@ -65,6 +68,6 @@ const styles = StyleSheet.create({
     rowGap: 14,
   },
   loading: {
-    color: Colors.muted,
+    color: colors.muted,
   },
 });

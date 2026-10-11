@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Colors } from '../constants/colors';
+import { ThemeColors } from '../constants/colors';
 import { CATEGORY_LABELS, CourseSuggestion, SuggestionCategory } from '../data/suggestionsData';
+import { FontScaler, useTheme, useThemedStyles } from '../context/ThemeContext';
 
 
 export const CATEGORY_COLORS: Record<SuggestionCategory, string> = {
@@ -18,6 +19,8 @@ type Props = {
 };
 
 export default function SuggestionCard({ course, added, onToggleAdd }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const color = CATEGORY_COLORS[course.category];
 
   return (
@@ -41,24 +44,24 @@ export default function SuggestionCard({ course, added, onToggleAdd }: Props) {
       {/* time and teacher */}
       <View style={styles.infoRow}>
         <View style={styles.info}>
-          <Ionicons name="time-outline" size={14} color={Colors.muted} />
+          <Ionicons name="time-outline" size={14} color={colors.muted} />
           <Text style={styles.infoText}>{course.schedule}</Text>
         </View>
         <View style={styles.info}>
-          <Ionicons name="person-outline" size={14} color={Colors.muted} />
+          <Ionicons name="person-outline" size={14} color={colors.muted} />
           <Text style={styles.infoText}>{course.teacher}</Text>
         </View>
       </View>
 
       {/* why it's suggested */}
       <View style={styles.reason}>
-        <Ionicons name="bulb-outline" size={15} color={Colors.gold} />
+        <Ionicons name="bulb-outline" size={15} color={colors.gold} />
         <Text style={styles.reasonText}>{course.reason}</Text>
       </View>
 
       {course.hasConflict && (
         <View style={styles.conflict}>
-          <Ionicons name="warning-outline" size={15} color={Colors.coral} />
+          <Ionicons name="warning-outline" size={15} color={colors.coral} />
           <Text style={styles.conflictText}>Time conflict with your schedule</Text>
         </View>
       )}
@@ -72,16 +75,17 @@ export default function SuggestionCard({ course, added, onToggleAdd }: Props) {
           pressed && styles.pressed,
         ]}
       >
-        <Ionicons name={added ? 'checkmark' : 'add'} size={18} color={Colors.white} />
+        <Ionicons name={added ? 'checkmark' : 'add'} size={18} color={colors.white} />
         <Text style={styles.buttonText}>{added ? 'ADDED TO PLANNER' : 'ADD TO PLANNER'}</Text>
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+// styles are built from the current theme colors and font size
+const makeStyles = (colors: ThemeColors, fs: FontScaler) => StyleSheet.create({
   card: {
-    backgroundColor: Colors.card,
+    backgroundColor: colors.card,
     borderRadius: 18,
     padding: 16,
     marginBottom: 14,
@@ -101,13 +105,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   dot: { width: 7, height: 7, borderRadius: 4 },
-  badgeText: { fontSize: 10, fontWeight: 'bold', letterSpacing: 0.5 },
-  credits: { color: Colors.muted, fontSize: 12, fontWeight: '600' },
-  name: { color: Colors.white, fontSize: 17, fontWeight: 'bold' },
-  code: { color: Colors.muted, fontSize: 13, marginTop: 2 },
+  badgeText: { fontSize: fs(10), fontWeight: 'bold', letterSpacing: 0.5 },
+  credits: { color: colors.muted, fontSize: fs(12), fontWeight: '600' },
+  name: { color: colors.white, fontSize: fs(17), fontWeight: 'bold' },
+  code: { color: colors.muted, fontSize: fs(13), marginTop: 2 },
   infoRow: { flexDirection: 'row', gap: 16, marginTop: 10 },
   info: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  infoText: { color: Colors.muted, fontSize: 13 },
+  infoText: { color: colors.muted, fontSize: fs(13) },
   reason: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -115,11 +119,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
     padding: 10,
     borderRadius: 10,
-    backgroundColor: Colors.cardLight,
+    backgroundColor: colors.cardLight,
   },
-  reasonText: { flex: 1, color: Colors.white, fontSize: 13 },
+  reasonText: { flex: 1, color: colors.white, fontSize: fs(13) },
   conflict: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
-  conflictText: { color: Colors.coral, fontSize: 12, fontWeight: '600' },
+  conflictText: { color: colors.coral, fontSize: fs(12), fontWeight: '600' },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -127,10 +131,10 @@ const styles = StyleSheet.create({
     gap: 6,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.coral,
+    backgroundColor: colors.coral,
     marginTop: 14,
   },
-  buttonAdded: { backgroundColor: Colors.teal },
-  buttonText: { color: Colors.white, fontSize: 13, fontWeight: 'bold', letterSpacing: 0.5 },
+  buttonAdded: { backgroundColor: colors.teal },
+  buttonText: { color: colors.white, fontSize: fs(13), fontWeight: 'bold', letterSpacing: 0.5 },
   pressed: { opacity: 0.7 },
 });

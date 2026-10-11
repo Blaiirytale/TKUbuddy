@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SuggestionCard, { CATEGORY_COLORS } from '../components/SuggestionCard';
-import { Colors } from '../constants/colors';
+import { ThemeColors } from '../constants/colors';
 import {
   CATEGORY_LABELS,
   fetchSuggestions,
   SuggestionCategory,
   SuggestionsResult,
 } from '../data/suggestionsData';
+import { FontScaler, useTheme, useThemedStyles } from '../context/ThemeContext';
 
 // TEMPORARY: will come from the login later
 const STUDENT_ID = '411000001';
@@ -18,6 +19,8 @@ const STUDENT_ID = '411000001';
 type Filter = 'all' | SuggestionCategory;
 
 export default function SuggestionsScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const router = useRouter();
   const [data, setData] = useState<SuggestionsResult | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
@@ -63,7 +66,7 @@ export default function SuggestionsScreen() {
         {/* HEADER */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={12}>
-            <Ionicons name="chevron-back" size={28} color={Colors.white} />
+            <Ionicons name="chevron-back" size={28} color={colors.white} />
           </Pressable>
           <Text style={styles.headerTitle}>Course Suggestions</Text>
           <View style={{ width: 28 }} />
@@ -143,8 +146,9 @@ export default function SuggestionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: Colors.background },
+// styles are built from the current theme colors and font size
+const makeStyles = (colors: ThemeColors, fs: FontScaler) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
   safe: { flex: 1 },
   header: {
     flexDirection: 'row',
@@ -153,49 +157,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
-  headerTitle: { color: Colors.white, fontSize: 22, fontWeight: 'bold' },
-  loading: { color: Colors.white, textAlign: 'center', marginTop: 40 },
+  headerTitle: { color: colors.white, fontSize: fs(22), fontWeight: 'bold' },
+  loading: { color: colors.white, textAlign: 'center', marginTop: 40 },
   content: { padding: 24, paddingTop: 8, paddingBottom: 48 },
 
   summary: {
-    backgroundColor: Colors.card,
+    backgroundColor: colors.card,
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
   },
-  summaryLabel: { color: Colors.muted, fontSize: 14 },
-  summaryNumber: { color: Colors.coral, fontSize: 40, fontWeight: 'bold', marginTop: 2 },
-  summaryUnit: { color: Colors.white, fontSize: 18, fontWeight: '600' },
+  summaryLabel: { color: colors.muted, fontSize: fs(14) },
+  summaryNumber: { color: colors.coral, fontSize: fs(40), fontWeight: 'bold', marginTop: 2 },
+  summaryUnit: { color: colors.white, fontSize: fs(18), fontWeight: '600' },
   missingRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   missingChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.cardLight,
+    backgroundColor: colors.cardLight,
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  missingText: { color: Colors.white, fontSize: 12, fontWeight: '600' },
+  missingText: { color: colors.white, fontSize: fs(12), fontWeight: '600' },
 
   filters: { gap: 8, paddingBottom: 16 },
   filterChip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 18,
-    backgroundColor: Colors.card,
+    backgroundColor: colors.card,
   },
-  filterChipActive: { backgroundColor: Colors.white },
-  filterText: { color: Colors.white, fontSize: 14, fontWeight: '600' },
-  filterTextActive: { color: Colors.card },
+  filterChipActive: { backgroundColor: colors.white },
+  filterText: { color: colors.white, fontSize: fs(14), fontWeight: '600' },
+  filterTextActive: { color: colors.card },
 
-  empty: { color: Colors.white, textAlign: 'center', marginTop: 24 },
+  empty: { color: colors.white, textAlign: 'center', marginTop: 24 },
   addedNote: {
-    color: Colors.white,
+    color: colors.white,
     opacity: 0.8,
     textAlign: 'center',
     marginTop: 8,
-    fontSize: 13,
+    fontSize: fs(13),
   },
 });
