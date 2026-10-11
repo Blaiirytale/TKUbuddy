@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ComponentProps } from 'react';
 import { Image, ImageSourcePropType, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Colors } from '../constants/colors';
+import { ThemeColors } from '../constants/colors';
+import { FontScaler, useTheme, useThemedStyles } from '../context/ThemeContext';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -25,6 +26,8 @@ type Props = {
 };
 
 export default function QuickAccess({ onPressItem }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.section}>
       <Text style={styles.heading}>Quick Access</Text>
@@ -41,7 +44,7 @@ export default function QuickAccess({ onPressItem }: Props) {
               {item.image ? (
                 <Image source={item.image} style={styles.image} />
               ) : (
-                <Ionicons name={item.icon ?? 'help-outline'} size={32} color={Colors.white} />
+                <Ionicons name={item.icon ?? 'help-outline'} size={32} color={colors.white} />
               )}
             </View>
             <Text style={styles.label}>{item.label.toUpperCase()}</Text>
@@ -52,13 +55,14 @@ export default function QuickAccess({ onPressItem }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+// styles are built from the current theme colors and font size
+const makeStyles = (colors: ThemeColors, fs: FontScaler) => StyleSheet.create({
   section: {
     marginBottom: 24,
   },
   heading: {
-    color: Colors.white,
-    fontSize: 18,
+    color: colors.white,
+    fontSize: fs(18),
     fontWeight: 'bold',
     marginBottom: 12,
   },
@@ -77,7 +81,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 14,
-    backgroundColor: Colors.card,
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -87,8 +91,8 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   label: {
-    color: Colors.white,
-    fontSize: 10,
+    color: colors.white,
+    fontSize: fs(10),
     fontWeight: 'bold',
     textAlign: 'center',
     marginTop: 6,

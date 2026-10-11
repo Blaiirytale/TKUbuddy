@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Colors } from '../constants/colors';
+import { ThemeColors } from '../constants/colors';
 import { GECategory } from '../data/geData';
+import { FontScaler, useTheme, useThemedStyles } from '../context/ThemeContext';
 
 type Props = {
   category: GECategory;
@@ -10,6 +11,8 @@ type Props = {
 };
 
 export default function GECard({ category, onFindCourse }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   
   const [open, setOpen] = useState(true);
   const complete = category.creditsDone >= category.creditsRequired;
@@ -22,7 +25,7 @@ export default function GECard({ category, onFindCourse }: Props) {
         <Text style={styles.title} numberOfLines={2}>
           {category.title}
         </Text>
-        <Ionicons name={open ? 'caret-down' : 'caret-forward'} size={14} color={Colors.white} />
+        <Ionicons name={open ? 'caret-down' : 'caret-forward'} size={14} color={colors.white} />
       </Pressable>
 
       {/* field list, in 2 columns */}
@@ -32,10 +35,10 @@ export default function GECard({ category, onFindCourse }: Props) {
             <View key={field.name} style={styles.field}>
               <View style={styles.statusIcon}>
                 {field.status === 'done' && (
-                  <Ionicons name="checkmark" size={14} color={Colors.white} />
+                  <Ionicons name="checkmark" size={14} color={colors.white} />
                 )}
                 {field.status === 'in_progress' && (
-                  <Ionicons name="ellipse-outline" size={11} color={Colors.white} />
+                  <Ionicons name="ellipse-outline" size={11} color={colors.white} />
                 )}
               </View>
               <Text style={styles.fieldText}>{field.name}</Text>
@@ -65,10 +68,11 @@ export default function GECard({ category, onFindCourse }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+// styles are built from the current theme colors and font size
+const makeStyles = (colors: ThemeColors, fs: FontScaler) => StyleSheet.create({
   card: {
     width: '48%', 
-    backgroundColor: Colors.card,
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 12,
   },
@@ -82,12 +86,12 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: Colors.grey,
+    backgroundColor: colors.grey,
   },
   title: {
     flex: 1,
-    color: Colors.white,
-    fontSize: 13,
+    color: colors.white,
+    fontSize: fs(13),
     fontWeight: '600',
     textAlign: 'right',
   },
@@ -108,33 +112,33 @@ const styles = StyleSheet.create({
     marginRight: 2,
   },
   fieldText: {
-    color: Colors.white,
-    fontSize: 12,
+    color: colors.white,
+    fontSize: fs(12),
     flexShrink: 1, 
   },
   credits: {
-    color: Colors.white,
-    fontSize: 9,
+    color: colors.white,
+    fontSize: fs(9),
     fontWeight: 'bold',
     marginTop: 'auto', 
     marginBottom: 8,
   },
   button: {
     alignSelf: 'flex-end',
-    backgroundColor: Colors.coral,
+    backgroundColor: colors.coral,
     borderRadius: 12,
     paddingVertical: 4,
     paddingHorizontal: 12,
   },
   completeBadge: {
-    backgroundColor: Colors.teal,
+    backgroundColor: colors.teal,
   },
   pressed: {
     opacity: 0.7,
   },
   buttonText: {
-    color: Colors.white,
-    fontSize: 9,
+    color: colors.white,
+    fontSize: fs(9),
     fontWeight: 'bold',
   },
 });
