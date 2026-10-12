@@ -1,53 +1,62 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import SuggestionCard, { CATEGORY_COLORS } from '../components/SuggestionCard';
 import { ThemeColors } from '../constants/colors';
+import { usePlanner } from '../context/PlannerContext';
+import { FontScaler, useTheme, useThemedStyles } from '../context/ThemeContext';
+import { parseSchedule, PlannedCourse } from '../data/plannerData';
 import {
   CATEGORY_LABELS,
+  CourseSuggestion,
   fetchSuggestions,
   SuggestionCategory,
   SuggestionsResult,
 } from '../data/suggestionsData';
-import { FontScaler, useTheme, useThemedStyles } from '../context/ThemeContext';
 
 // TEMPORARY: will come from the login later
 const STUDENT_ID = '411000001';
 
 type Filter = 'all' | SuggestionCategory;
 
+// a suggestion, written the way the Planner stores courses
+function toPlannedCourse(s: CourseSuggestion): PlannedCourse {
+  return {
+    id: s.code,
+    code: s.code,
+    name: s.name,
+    credits: s.credits,
+    sessions: parseSchedule(s.schedule),
+    teacher: s.teacher,
+    room: s.room,
+    tag: CATEGORY_LABELS[s.category],
+    color: CATEGORY_COLORS[s.category],
+  };
+}
+
 export default function SuggestionsScreen() {
   const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [data, setData] = useState<SuggestionsResult | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
-  // BACKEND TODO: the Planner will own this list later
-  const [addedIds, setAddedIds] = useState<string[]>([]);
+  // the planner list is shared with the Planner screen
+  const planner = usePlanner();
 
   useEffect(() => {
     fetchSuggestions(STUDENT_ID).then(setData);
   }, []);
 
-  function toggleAdd(id: string, hasConflict: boolean) {
-    if (addedIds.includes(id)) {
-      setAddedIds(addedIds.filter((x) => x !== id)); // remove it
-      return;
+  function toggleAdd(suggestion: CourseSuggestion) {
+    const course = toPlannedCourse(suggestion);
+    if (planner.isPlanned(course.id)) {
+      planner.removeCourse(course.id);
+    } else {
+      planner.requestAdd(course); // asks first if there's a time clash or too many credits
     }
-    if (hasConflict) {
-      Alert.alert(
-        'Time conflict',
-        'This course overlaps a class already in your schedule. Add it anyway?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Add anyway', onPress: () => setAddedIds([...addedIds, id]) },
-        ]
-      );
-      return;
-    }
-    setAddedIds([...addedIds, id]);
   }
 
   // only categories that still need credits get a filter chip
@@ -75,7 +84,7 @@ export default function SuggestionsScreen() {
         {!data ? (
           <Text style={styles.loading}>Loading suggestions...</Text>
         ) : (
-          <ScrollView contentContainerStyle={styles.content}>
+          <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 110 + insets.bottom }]}>
             {/* SUMMARY: what's still missing */}
             <View style={styles.summary}>
               <Text style={styles.summaryLabel}>You still need</Text>
@@ -124,24 +133,41 @@ export default function SuggestionsScreen() {
             {visible.length === 0 ? (
               <Text style={styles.empty}>No suggestions in this category right now.</Text>
             ) : (
-              visible.map((course) => (
-                <SuggestionCard
-                  key={course.id}
-                  course={course}
-                  added={addedIds.includes(course.id)}
-                  onToggleAdd={() => toggleAdd(course.id, course.hasConflict)}
-                />
-              ))
-            )}
-
-            {addedIds.length > 0 && (
-              <Text style={styles.addedNote}>
-                {addedIds.length} course{addedIds.length > 1 ? 's' : ''} added to your planner
-              </Text>
+              visible.map((suggestion) => {
+                const course = toPlannedCourse(suggestion);
+                return (
+                  <SuggestionCard
+                    key={suggestion.id}
+                    course={suggestion}
+                    added={planner.isPlanned(course.id)}
+                    clashWith={planner.conflictsFor(course).map((c) => c.name)}
+                    onToggleAdd={() => toggleAdd(suggestion)}
+                  />
+                );
+              })
             )}
           </ScrollView>
         )}
       </SafeAreaView>
+
+      {/* floating shortcut to the Planner once something is in it */}
+      {planner.courses.length > 0 ? (
+        <Pressable
+          onPress={() => router.push('/planner')}
+          style={({ pressed }) => [
+            styles.plannerPill,
+            { bottom: insets.bottom + 16 },
+            pressed && styles.pressed,
+          ]}
+        >
+          <Ionicons name="calendar" size={20} color={colors.white} />
+          <Text style={styles.plannerPillText}>
+            View planner · {planner.courses.length} course{planner.courses.length > 1 ? 's' : ''} ·{' '}
+            {planner.totalCredits} cr
+          </Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.white} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -159,7 +185,7 @@ const makeStyles = (colors: ThemeColors, fs: FontScaler) => StyleSheet.create({
   },
   headerTitle: { color: colors.white, fontSize: fs(22), fontWeight: 'bold' },
   loading: { color: colors.white, textAlign: 'center', marginTop: 40 },
-  content: { padding: 24, paddingTop: 8, paddingBottom: 48 },
+  content: { padding: 24, paddingTop: 8 },
 
   summary: {
     backgroundColor: colors.card,
@@ -195,11 +221,24 @@ const makeStyles = (colors: ThemeColors, fs: FontScaler) => StyleSheet.create({
   filterTextActive: { color: colors.card },
 
   empty: { color: colors.white, textAlign: 'center', marginTop: 24 },
-  addedNote: {
-    color: colors.white,
-    opacity: 0.8,
-    textAlign: 'center',
-    marginTop: 8,
-    fontSize: fs(13),
+
+  plannerPill: {
+    position: 'absolute',
+    left: 24,
+    right: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.teal,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
+  plannerPillText: { color: colors.white, fontSize: fs(15), fontWeight: 'bold' },
+  pressed: { opacity: 0.8 },
 });

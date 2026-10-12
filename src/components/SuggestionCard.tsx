@@ -15,10 +15,11 @@ export const CATEGORY_COLORS: Record<SuggestionCategory, string> = {
 type Props = {
   course: CourseSuggestion;
   added: boolean;
+  clashWith: string[]; // names of planner courses at the same time (empty = no clash)
   onToggleAdd: () => void;
 };
 
-export default function SuggestionCard({ course, added, onToggleAdd }: Props) {
+export default function SuggestionCard({ course, added, clashWith, onToggleAdd }: Props) {
   const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const color = CATEGORY_COLORS[course.category];
@@ -41,7 +42,7 @@ export default function SuggestionCard({ course, added, onToggleAdd }: Props) {
         {course.code} · {course.field}
       </Text>
 
-      {/* time and teacher */}
+      {/* time, teacher and room */}
       <View style={styles.infoRow}>
         <View style={styles.info}>
           <Ionicons name="time-outline" size={14} color={colors.muted} />
@@ -51,6 +52,12 @@ export default function SuggestionCard({ course, added, onToggleAdd }: Props) {
           <Ionicons name="person-outline" size={14} color={colors.muted} />
           <Text style={styles.infoText}>{course.teacher}</Text>
         </View>
+        {course.room ? (
+          <View style={styles.info}>
+            <Ionicons name="location-outline" size={14} color={colors.muted} />
+            <Text style={styles.infoText}>{course.room}</Text>
+          </View>
+        ) : null}
       </View>
 
       {/* why it's suggested */}
@@ -59,12 +66,13 @@ export default function SuggestionCard({ course, added, onToggleAdd }: Props) {
         <Text style={styles.reasonText}>{course.reason}</Text>
       </View>
 
-      {course.hasConflict && (
+      {/* checked live against the courses in your planner */}
+      {!added && clashWith.length > 0 ? (
         <View style={styles.conflict}>
           <Ionicons name="warning-outline" size={15} color={colors.coral} />
-          <Text style={styles.conflictText}>Time conflict with your schedule</Text>
+          <Text style={styles.conflictText}>Same time as {clashWith.join(' and ')} in your planner</Text>
         </View>
-      )}
+      ) : null}
 
       {/* add / added button */}
       <Pressable
@@ -109,7 +117,7 @@ const makeStyles = (colors: ThemeColors, fs: FontScaler) => StyleSheet.create({
   credits: { color: colors.muted, fontSize: fs(12), fontWeight: '600' },
   name: { color: colors.white, fontSize: fs(17), fontWeight: 'bold' },
   code: { color: colors.muted, fontSize: fs(13), marginTop: 2 },
-  infoRow: { flexDirection: 'row', gap: 16, marginTop: 10 },
+  infoRow: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 16, rowGap: 6, marginTop: 10 },
   info: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   infoText: { color: colors.muted, fontSize: fs(13) },
   reason: {
@@ -123,7 +131,7 @@ const makeStyles = (colors: ThemeColors, fs: FontScaler) => StyleSheet.create({
   },
   reasonText: { flex: 1, color: colors.white, fontSize: fs(13) },
   conflict: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
-  conflictText: { color: colors.coral, fontSize: fs(12), fontWeight: '600' },
+  conflictText: { flex: 1, color: colors.coral, fontSize: fs(12), fontWeight: '600' },
   button: {
     flexDirection: 'row',
     alignItems: 'center',

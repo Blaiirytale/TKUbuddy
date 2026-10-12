@@ -27,7 +27,7 @@ export default function BottomBar({ onPlusPress }: Props) {
 
   return (
     <View style={[styles.bar, { paddingBottom: insets.bottom + 8 }]}>
-      <Pressable style={styles.icon}>
+      <Pressable style={styles.icon} onPress={() => router.push('/planner')}>
         <Ionicons name="calendar-outline" size={28} color={colors.white} />
       </Pressable>
       <Pressable style={styles.icon}>
