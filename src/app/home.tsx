@@ -9,8 +9,8 @@ import GraduationProgress from '../components/GraduationProgress';
 import QuickAccess from '../components/QuickAccess';
 import { ThemeColors } from '../constants/colors';
 import { useProfile } from '../context/ProfileContext';
-import { fetchGECategories, GECategory } from '../data/geData';
 import { FontScaler, useThemedStyles } from '../context/ThemeContext';
+import { GECategory, fetchGECategories } from '../data/geData';
 
 // TEMPORARY test data. The backend teammate will replace these with database data later.
 const STUDENT_ID = '411000001';
@@ -30,6 +30,8 @@ export default function HomeScreen() {
   function handleQuickAccess(id: string) {
     if (id === 'suggestions') {
       router.push('/suggestions');
+    } else if (id === 'planner') {
+      router.push('/planner');
     } else {
       Alert.alert('Coming soon', `You tapped: ${id}`);
     }
@@ -57,7 +59,7 @@ export default function HomeScreen() {
           <GraduationProgress
             done={CREDITS_DONE}
             total={128}
-            onPress={() => Alert.alert('Course history', 'Coming soon!')}
+            onPress={() => router.push('/history')}
           />
 
           <QuickAccess onPressItem={handleQuickAccess} />

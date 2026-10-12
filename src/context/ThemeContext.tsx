@@ -1,7 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 import { Theme, ThemeColors, ThemeId, THEMES } from '../constants/colors';
-
-// ---------- FONT SIZES ----------
 export type FontSizeId = 'small' | 'default' | 'large';
 
 export const FONT_SIZES: { id: FontSizeId; label: string; scale: number }[] = [

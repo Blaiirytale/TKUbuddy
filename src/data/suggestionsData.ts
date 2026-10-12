@@ -1,24 +1,26 @@
-
-// Backend to do return data in exactly this shape and the screen will just work.
+// src/data/suggestionsData.ts
+// Backend to do: return data in exactly this shape and the screen will just work.
 
 export type SuggestionCategory = 'humanities' | 'social' | 'science' | 'required';
 
 export type CourseSuggestion = {
   id: string;
-  code: string;         
+  code: string;
   name: string;
   credits: number;
   category: SuggestionCategory;
-  field: string;         
+  field: string;
   teacher: string;
-  schedule: string;      
-  reason: string;        
-  hasConflict: boolean;  
+  // day + periods, several meetings joined by ", "  e.g. "Mon 3-4" or "Tue 2, Thu 3-4"
+  // (the Planner reads this to place the class and to check for time clashes)
+  schedule: string;
+  room?: string;
+  reason: string;
 };
 
 export type MissingCredit = {
   category: SuggestionCategory;
-  missing: number;       
+  missing: number;
 };
 
 export type SuggestionsResult = {
@@ -34,6 +36,8 @@ export const CATEGORY_LABELS: Record<SuggestionCategory, string> = {
 };
 
 // ---------- FAKE DATA ----------
+// Film and Society (Wed 4-5) overlaps Exploring Sustainability (Wed 3-4) on purpose,
+// so you can see the time clash warning when you add both.
 const MOCK_RESULT: SuggestionsResult = {
   missing: [
     { category: 'humanities', missing: 2 },
@@ -51,8 +55,8 @@ const MOCK_RESULT: SuggestionsResult = {
       field: 'Field P',
       teacher: 'Dr. Sasa',
       schedule: 'Mon 3-4',
+      room: 'L 204',
       reason: 'Completes Field P',
-      hasConflict: false,
     },
     {
       id: '2',
@@ -62,9 +66,9 @@ const MOCK_RESULT: SuggestionsResult = {
       category: 'humanities',
       field: 'Field V',
       teacher: 'Prof. Majo',
-      schedule: 'Wed 5-6',
+      schedule: 'Wed 4-5',
+      room: 'C 012',
       reason: 'Completes Field V',
-      hasConflict: true,
     },
     {
       id: '3',
@@ -75,8 +79,8 @@ const MOCK_RESULT: SuggestionsResult = {
       field: 'Field T',
       teacher: 'Dr. Tris',
       schedule: 'Tue 7-8',
+      room: 'B 702',
       reason: 'Completes Field T',
-      hasConflict: false,
     },
     {
       id: '4',
@@ -87,8 +91,8 @@ const MOCK_RESULT: SuggestionsResult = {
       field: 'Field Z',
       teacher: 'Prof. Vanessa',
       schedule: 'Thu 3-4',
+      room: 'S 104',
       reason: 'Completes Field Z and the Science category',
-      hasConflict: false,
     },
     {
       id: '5',
@@ -99,8 +103,8 @@ const MOCK_RESULT: SuggestionsResult = {
       field: 'Required',
       teacher: 'Dr. Russel',
       schedule: 'Fri 1-2',
+      room: 'E 501',
       reason: 'Required for graduation',
-      hasConflict: false,
     },
     {
       id: '6',
@@ -111,13 +115,13 @@ const MOCK_RESULT: SuggestionsResult = {
       field: 'Required',
       teacher: 'Prof. Cody',
       schedule: 'Wed 3-4',
+      room: 'H 107',
       reason: 'Required for graduation',
-      hasConflict: false,
     },
   ],
 };
 
-// hi BACKEND TO DO: replace the inside with a real request.
+// BACKEND TODO: replace the inside with a real request.
 // Keep the name and the SuggestionsResult return type the same.
 export async function fetchSuggestions(studentId: string): Promise<SuggestionsResult> {
   return MOCK_RESULT;
