@@ -27,8 +27,13 @@ export default function BottomBar({ onPlusPress }: Props) {
 
   return (
     <View style={[styles.bar, { paddingBottom: insets.bottom + 8 }]}>
-      <Pressable style={styles.icon} onPress={() => router.push('/planner')}>
-        <Ionicons name="calendar-outline" size={28} color={colors.white} />
+      <Pressable style={styles.icon} onPress={() => router.push('/schedule')}>
+        <View>
+          <Ionicons name="calendar-outline" size={28} color={colors.white} />
+          <View style={styles.clockBadge}>
+            <Ionicons name="time-outline" size={16} color={colors.white} />
+          </View>
+        </View>
       </Pressable>
       <Pressable style={styles.icon}>
         <Ionicons name="search-outline" size={28} color={colors.white} />
@@ -63,6 +68,14 @@ const makeStyles = (colors: ThemeColors, fs: FontScaler) => StyleSheet.create({
   icon: {
     width: 48,
     alignItems: 'center',
+  },
+  clockBadge: {
+    position: 'absolute',
+    right: -6,
+    bottom: -5,
+    backgroundColor: colors.card,
+    borderRadius: 10,
+    padding: 1,
   },
   plus: {
     position: 'absolute',
