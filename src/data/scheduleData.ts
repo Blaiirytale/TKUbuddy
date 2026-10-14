@@ -125,6 +125,7 @@ export async function addCourseBack(studentId: string, courseId: string): Promis
 // ---------- DATE AND TIME HELPERS ----------
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+export const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const pad = (n: number) => String(n).padStart(2, '0');
 
 // a Date -> '2026-10-13' (in the phone's time zone)
@@ -141,6 +142,17 @@ export function formatDateKey(key: string) {
 // a Date -> 'Tue, Oct 13'
 export function formatToday(date: Date) {
   return `${WEEKDAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`;
+}
+
+// Mon-Fri dates of this week (on a weekend, the coming week)
+export function schoolWeek(now: Date) {
+  const day = now.getDay();
+  const toMonday = day === 0 ? 1 : day === 6 ? 2 : 1 - day;
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + toMonday);
+  return Array.from(
+    { length: 5 },
+    (_, i) => new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i)
+  );
 }
 
 // is the given day inside the add & drop dates?

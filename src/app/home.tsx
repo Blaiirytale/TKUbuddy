@@ -31,6 +31,10 @@ export default function HomeScreen() {
   function handleQuickAccess(id: string) {
     if (id === 'suggestions') {
       router.push('/suggestions');
+    } else if (id === 'search') {
+      router.push('/search');
+    } else if (id === 'missing') {
+      router.push('/missing');
     } else if (id === 'planner') {
       router.push('/planner');
     } else {
