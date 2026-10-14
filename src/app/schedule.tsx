@@ -1,10 +1,14 @@
-
+// src/app/schedule.tsx
+// My Schedule: the courses you are registered in THIS semester.
+// It's locked: you can only drop a course (or add a dropped one back)
+// during the add & drop period. The Planner is for trying out NEXT semester.
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Linking,
   Modal,
   Pressable,
@@ -19,8 +23,9 @@ import { courseColor } from '../components/TimetableGrid';
 import { ThemeColors } from '../constants/colors';
 import { useProfile } from '../context/ProfileContext';
 import { FontScaler, useTheme, useThemedStyles } from '../context/ThemeContext';
-import { CREDIT_LIMIT, PlannedCourse, formatSessions, semesterName, sessionClock } from '../data/plannerData';
+import { CREDIT_LIMIT, DAYS, PlannedCourse, formatSessions, semesterName, sessionClock } from '../data/plannerData';
 import {
+  DAY_NAMES,
   ScheduleInfo,
   TKU_ADD_DROP_URL,
   WEEKDAYS,
@@ -31,6 +36,7 @@ import {
   findNextClass,
   formatDateKey,
   isAddDropOpen,
+  schoolWeek,
 } from '../data/scheduleData';
 
 // TEMPORARY: will come from the login later
@@ -51,6 +57,11 @@ export default function ScheduleScreen() {
   const [busyId, setBusyId] = useState<string | null>(null); // course being dropped / added back
   // DEMO: long-press the add & drop banner to pretend the period is open
   const [demoOpen, setDemoOpen] = useState(false);
+  // opens on today (Monday on weekends); tap another day to look at it
+  const [selectedDay, setSelectedDay] = useState(() => {
+    const day = new Date().getDay();
+    return day >= 1 && day <= 5 ? day - 1 : 0;
+  });
 
   const load = useCallback(() => {
     fetchSchedule(STUDENT_ID).then(setSchedule);
@@ -58,7 +69,7 @@ export default function ScheduleScreen() {
 
   useEffect(() => {
     load();
-
+    // keep "Now" and "Next" up to date while the screen is open
     const timer = setInterval(() => setNow(new Date()), 60 * 1000);
     return () => clearInterval(timer);
   }, [load]);
@@ -76,12 +87,16 @@ export default function ScheduleScreen() {
   const period = `${formatDateKey(addDrop.start)} – ${formatDateKey(addDrop.end)}`;
   const totalCredits = sumCredits(courses);
 
-
+  // ---------- the chosen day ----------
+  const week = schoolWeek(now);
+  const todayIndex = now.getDay() - 1;
+  const isToday = selectedDay === todayIndex;
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const live = classesOnDay(courses, now.getDay()).find(
-    (slot) => slot.start <= nowMinutes && nowMinutes < slot.end
-  );
+  const daySlots = classesOnDay(courses, selectedDay + 1);
+  const upcomingIndex = isToday ? daySlots.findIndex((slot) => slot.start > nowMinutes) : -1;
+  const liveToday = isToday && daySlots.some((slot) => slot.start <= nowMinutes && nowMinutes < slot.end);
   const next = findNextClass(courses, now);
+  const showNextUp = isToday && upcomingIndex === -1 && !liveToday && next !== null;
   const nextWhen = !next
     ? ''
     : next.daysAhead === 0
@@ -90,7 +105,7 @@ export default function ScheduleScreen() {
         ? 'Tomorrow'
         : WEEKDAYS[next.weekday];
 
-
+  // ---------- drop / add back ----------
   function askDrop(course: PlannedCourse) {
     if (!open) {
       Alert.alert('Drop is closed', `You can only drop courses during add & drop (${period}).`);
@@ -181,32 +196,99 @@ export default function ScheduleScreen() {
             </View>
           </Pressable>
 
-          {/* NOW / NEXT UP */}
-          {live || next ? (
-            <Pressable
-              onPress={() => setSelected((live ?? next)!.course)}
-              style={({ pressed }) => [styles.upNext, pressed && styles.pressed]}
-            >
-              <View style={[styles.upChip, { backgroundColor: live ? colors.coral : colors.teal }]}>
-                <Text style={styles.upChipText}>{live ? 'NOW' : 'NEXT'}</Text>
-              </View>
-              <View style={styles.flex}>
-                <Text style={styles.upName} numberOfLines={1}>
-                  {(live ?? next)!.course.name}
-                </Text>
-                <Text style={styles.upMeta}>
-                  {live
-                    ? `until ${live.endText} · ${live.course.room ?? 'Room TBA'}`
-                    : `${nextWhen} ${next!.startText} · ${next!.course.room ?? 'Room TBA'}`}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-            </Pressable>
-          ) : (
-            <View style={styles.upNext}>
-              <Text style={styles.upName}>No classes this week 🎉</Text>
+          {/* DAY VIEW */}
+          <View style={styles.dayCard}>
+            <View style={styles.tabs}>
+              {DAYS.map((day, i) => {
+                const active = i === selectedDay;
+                return (
+                  <Pressable
+                    key={day}
+                    onPress={() => setSelectedDay(i)}
+                    style={[styles.tab, active && { backgroundColor: colors.teal }]}
+                  >
+                    <Text style={[styles.tabDay, active && styles.tabTextActive]}>{day.toUpperCase()}</Text>
+                    <Text style={[styles.tabDate, active && styles.tabTextActive]}>{week[i].getDate()}</Text>
+                    <View
+                      style={[
+                        styles.todayDot,
+                        {
+                          backgroundColor:
+                            i === todayIndex ? (active ? colors.white : colors.coral) : 'transparent',
+                        },
+                      ]}
+                    />
+                  </Pressable>
+                );
+              })}
             </View>
-          )}
+
+            <View style={styles.dayHeader}>
+              <Text style={styles.dayTitle}>{isToday ? 'Today' : DAY_NAMES[selectedDay + 1]}</Text>
+              <Text style={styles.dayCount}>
+                {daySlots.length === 0
+                  ? 'free day'
+                  : `${daySlots.length} class${daySlots.length > 1 ? 'es' : ''}`}
+              </Text>
+            </View>
+
+            {daySlots.length === 0 ? (
+              <View style={styles.freeDay}>
+                <Image source={require('../../assets/app-images/bud/bud_sleepy.png')} style={styles.freeBud} />
+                <Text style={styles.freeText}>No classes on {DAY_NAMES[selectedDay + 1]} 🎉</Text>
+              </View>
+            ) : (
+              daySlots.map((slot, i) => {
+                const done = isToday && slot.end <= nowMinutes;
+                const live = isToday && slot.start <= nowMinutes && nowMinutes < slot.end;
+                const label = live ? 'NOW' : i === upcomingIndex ? 'NEXT' : done ? 'DONE' : '';
+                return (
+                  <Pressable
+                    key={`${slot.course.id}-${slot.start}`}
+                    onPress={() => setSelected(slot.course)}
+                    style={({ pressed }) => [styles.classRow, done && styles.faded, pressed && styles.pressed]}
+                  >
+                    <View style={styles.timeCol}>
+                      <Text style={styles.timeStart}>{slot.startText}</Text>
+                      <Text style={styles.timeEnd}>{slot.endText}</Text>
+                    </View>
+                    <View style={[styles.classBar, { backgroundColor: courseColor(slot.course) }]} />
+                    <View style={styles.flex}>
+                      <Text style={styles.className} numberOfLines={1}>
+                        {slot.course.name}
+                      </Text>
+                      <Text style={styles.classMeta} numberOfLines={1}>
+                        {slot.course.room ?? 'Room TBA'}
+                        {slot.course.teacher ? ` · ${slot.course.teacher}` : ''}
+                      </Text>
+                    </View>
+                    {label ? (
+                      <View
+                        style={[
+                          styles.chip,
+                          {
+                            backgroundColor:
+                              label === 'NOW' ? colors.coral : label === 'NEXT' ? colors.teal : colors.cardLight,
+                          },
+                        ]}
+                      >
+                        <Text style={styles.chipText}>{label}</Text>
+                      </View>
+                    ) : null}
+                  </Pressable>
+                );
+              })
+            )}
+
+            {showNextUp && next ? (
+              <Pressable onPress={() => setSelected(next.course)} style={styles.nextRow}>
+                <Ionicons name="arrow-forward-circle" size={18} color={colors.gold} />
+                <Text style={styles.nextText} numberOfLines={1}>
+                  Next up · {next.course.name} · {nextWhen} {next.startText}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
 
           {/* THE PAPER SCHEDULE */}
           <View style={styles.sheetGap} />
@@ -215,6 +297,8 @@ export default function ScheduleScreen() {
             subtitle={`${schedule.semester} · ${semesterName(schedule.semester).toUpperCase()} · ${totalCredits} CREDITS`}
             ownerName={displayName}
             now={now}
+            selectedDay={selectedDay}
+            onSelectDay={setSelectedDay}
             onPressCourse={setSelected}
           />
 
@@ -383,21 +467,53 @@ const makeStyles = (colors: ThemeColors, fs: FontScaler) =>
     demoChip: { backgroundColor: colors.gold, borderRadius: 8, paddingHorizontal: 6, paddingVertical: 1 },
     demoText: { color: '#1E1E1E', fontSize: fs(10), fontWeight: 'bold' },
 
-    // now / next up strip
-    upNext: {
+    // day view
+    dayCard: { backgroundColor: colors.card, borderRadius: 20, padding: 14, marginTop: 12 },
+    tabs: { flexDirection: 'row', gap: 6 },
+    tab: {
+      flex: 1,
+      alignItems: 'center',
+      paddingTop: 8,
+      paddingBottom: 6,
+      borderRadius: 14,
+      backgroundColor: colors.cardLight,
+    },
+    tabDay: { color: colors.muted, fontSize: fs(11), fontWeight: 'bold', letterSpacing: 0.5 },
+    tabDate: { color: colors.white, fontSize: fs(17), fontWeight: 'bold', marginTop: 2 },
+    tabTextActive: { color: colors.white },
+    todayDot: { width: 5, height: 5, borderRadius: 3, marginTop: 3 },
+    dayHeader: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'space-between',
+      marginTop: 14,
+      marginBottom: 2,
+    },
+    dayTitle: { color: colors.white, fontSize: fs(19), fontWeight: 'bold' },
+    dayCount: { color: colors.muted, fontSize: fs(13), fontWeight: '600' },
+    classRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
+    timeCol: { width: 46 },
+    timeStart: { color: colors.white, fontSize: fs(14), fontWeight: 'bold' },
+    timeEnd: { color: colors.muted, fontSize: fs(12), marginTop: 1 },
+    classBar: { width: 4, alignSelf: 'stretch', borderRadius: 2 },
+    className: { color: colors.white, fontSize: fs(15), fontWeight: 'bold' },
+    classMeta: { color: colors.muted, fontSize: fs(12), marginTop: 2 },
+    chip: { borderRadius: 10, paddingHorizontal: 9, paddingVertical: 3 },
+    chipText: { color: colors.white, fontSize: fs(11), fontWeight: 'bold', letterSpacing: 0.5 },
+    faded: { opacity: 0.5 },
+    freeDay: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
+    freeBud: { width: 48, height: 48 },
+    freeText: { flex: 1, color: colors.white, fontSize: fs(14) },
+    nextRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
-      backgroundColor: colors.card,
-      borderRadius: 18,
-      paddingVertical: 12,
-      paddingHorizontal: 14,
-      marginTop: 12,
+      gap: 8,
+      marginTop: 8,
+      paddingTop: 10,
+      borderTopWidth: 1,
+      borderTopColor: colors.cardLight,
     },
-    upChip: { borderRadius: 10, paddingHorizontal: 9, paddingVertical: 4 },
-    upChipText: { color: colors.white, fontSize: fs(11), fontWeight: 'bold', letterSpacing: 0.8 },
-    upName: { color: colors.white, fontSize: fs(15), fontWeight: 'bold' },
-    upMeta: { color: colors.muted, fontSize: fs(12), marginTop: 2 },
+    nextText: { flex: 1, color: colors.white, fontSize: fs(13), fontWeight: '600' },
     sheetGap: { height: 14 },
 
     // sections

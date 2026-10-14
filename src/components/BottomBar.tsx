@@ -35,7 +35,7 @@ export default function BottomBar({ onPlusPress }: Props) {
           </View>
         </View>
       </Pressable>
-      <Pressable style={styles.icon}>
+      <Pressable style={styles.icon} onPress={() => router.push('/catalogue')}>
         <Ionicons name="search-outline" size={28} color={colors.white} />
       </Pressable>
 

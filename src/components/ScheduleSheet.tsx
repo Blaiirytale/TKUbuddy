@@ -89,10 +89,20 @@ type Props = {
   subtitle: string;   // e.g. "115-1 · FALL 2026 · 11 CREDITS"
   ownerName: string;  // printed at the bottom of the paper
   now: Date;
+  selectedDay: number; // 0 = Mon ... 4 = Fri
+  onSelectDay: (index: number) => void;
   onPressCourse: (course: PlannedCourse) => void;
 };
 
-export default function ScheduleSheet({ courses, subtitle, ownerName, now, onPressCourse }: Props) {
+export default function ScheduleSheet({
+  courses,
+  subtitle,
+  ownerName,
+  now,
+  selectedDay,
+  onSelectDay,
+  onPressCourse,
+}: Props) {
   const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const accent = colors.background; // class blocks and times use the theme's main color
@@ -116,21 +126,24 @@ export default function ScheduleSheet({ courses, subtitle, ownerName, now, onPre
       <Text style={styles.title}>class schedule</Text>
       <Text style={styles.subtitle}>{subtitle}</Text>
 
-      {/* day names (today gets a filled pill) */}
+      {/* tap a day to pick it; the coral dot marks today */}
       <View style={styles.dayRow}>
         <View style={{ width: TIME_COLUMN }} />
         {DAYS.map((day, i) => (
-          <View key={day} style={styles.dayCell}>
+          <Pressable key={day} style={styles.dayCell} onPress={() => onSelectDay(i)} hitSlop={6}>
             <Text
               style={[
                 styles.dayText,
                 { color: accent },
-                i === todayIndex && [styles.todayPill, { backgroundColor: accent }],
+                i === selectedDay && [styles.activePill, { backgroundColor: accent }],
               ]}
             >
               {day.toUpperCase()}
             </Text>
-          </View>
+            <View
+              style={[styles.todayMark, { backgroundColor: i === todayIndex ? colors.coral : 'transparent' }]}
+            />
+          </Pressable>
         ))}
       </View>
       <View style={[styles.topRule, { backgroundColor: accent }]} />
@@ -153,7 +166,7 @@ export default function ScheduleSheet({ courses, subtitle, ownerName, now, onPre
 
           <View style={styles.columns}>
             {DAYS.map((day, dayIndex) => (
-              <View key={day} style={styles.dayColumn}>
+              <View key={day} style={[styles.dayColumn, dayIndex === selectedDay && styles.selectedColumn]}>
                 {lunchDays[dayIndex] ? (
                   <View
                     style={[
@@ -247,7 +260,8 @@ const makeStyles = (colors: ThemeColors, fs: FontScaler) =>
       borderRadius: 9,
       overflow: 'hidden',
     },
-    todayPill: { color: '#FFFFFF' },
+    activePill: { color: '#FFFFFF' },
+    todayMark: { width: 5, height: 5, borderRadius: 3, marginTop: 4 },
     topRule: { height: 2, borderRadius: 1, marginBottom: 2 },
     body: { flexDirection: 'row', marginTop: 8 },
     hourText: {
@@ -260,6 +274,7 @@ const makeStyles = (colors: ThemeColors, fs: FontScaler) =>
     hourLine: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: LINE },
     columns: { flex: 1, flexDirection: 'row' },
     dayColumn: { flex: 1 },
+    selectedColumn: { backgroundColor: 'rgba(43, 36, 32, 0.045)', borderRadius: 8 },
     block: {
       position: 'absolute',
       left: 2.5,
