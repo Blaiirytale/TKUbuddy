@@ -2,29 +2,34 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
-    Alert,
-    Animated,
-    Easing,
-    KeyboardAvoidingView,
-    Linking,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  Animated,
+  Easing,
+  KeyboardAvoidingView,
+  Linking,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { login } from '../api/client';
 import { Colors } from '../constants/colors';
+import { useProfile } from '../context/ProfileContext';
 
 const APP_NAME = 'TKUBuddy';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { loadMyProfile } = useProfile();
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   //try animation
   const wiggle = useRef(new Animated.Value(0)).current;   // logo tilt left n right
@@ -103,8 +108,22 @@ export default function LoginScreen() {
     };
   }, []);
 
-  function handleLogin() {
-    // BACKEND TODO: check the student ID and password here before continue
+  async function handleLogin() {
+    if (loading) return;
+    if (!studentId.trim() || !password) {
+      setError('Enter student ID and password');
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    try {
+      await login(studentId.trim(), password);
+      await loadMyProfile();
+    } catch (e: any) {
+      setError(e.message ?? 'Unable to login');
+      setLoading(false);
+      return;
+    }
 
     logoLoop.current?.stop();
     lettersLoop.current?.stop();
@@ -117,7 +136,7 @@ export default function LoginScreen() {
         Animated.spring(logoScale, { toValue: 1, friction: 4, useNativeDriver: true }),
       ]),
       bounceLetters(),
-    ]).start(() => router.replace('/home'));
+    ]).start(() => router.replace('./home'));
   }
 
 
@@ -207,6 +226,7 @@ async function handleForgotPassword() {
             >
               <Text style={styles.buttonText}>LOG IN</Text>
             </Pressable>
+            
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>

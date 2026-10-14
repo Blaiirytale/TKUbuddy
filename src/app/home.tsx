@@ -12,17 +12,18 @@ import { useProfile } from '../context/ProfileContext';
 import { fetchGECategories, GECategory } from '../data/geData';
 
 // TEMPORARY test data. The backend teammate will replace these with database data later.
-const STUDENT_ID = '411000001';
 const CREDITS_DONE = 116;
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { displayName } = useProfile();
+  const { displayName, student} = useProfile();
   const [geCategories, setGeCategories] = useState<GECategory[]>([]);
 
   useEffect(() => {
-    fetchGECategories(STUDENT_ID).then(setGeCategories);
-  }, []);
+    if (!student?.student_id) return;
+
+    fetchGECategories(student.student_id).then(setGeCategories);
+  }, [student?.student_id]);
 
   // decide where each Quick Access button goes
   function handleQuickAccess(id: string) {

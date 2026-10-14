@@ -3,34 +3,32 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { ComponentProps, useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { logout } from '../api/client';
 import Avatar from '../components/Avatar';
 import { Colors } from '../constants/colors';
 import { useProfile } from '../context/ProfileContext';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
-
-const REGISTERED_NAME = 'Pramesti';
-const STUDENT_ID = '411000001';
 const MAX_NAME_LENGTH = 30;
 
 const LANGUAGE_LABELS = { en: 'English', zh: '中文' };
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { displayName, setDisplayName, photoUri, setPhotoUri, language, setLanguage } =
+  const { displayName, setDisplayName, photoUri, setPhotoUri, language, setLanguage, student } =
     useProfile();
 
   const [editingName, setEditingName] = useState(false);
@@ -48,7 +46,7 @@ export default function SettingsScreen() {
   function saveName() {
     const trimmed = nameDraft.trim();
 
-    setDisplayName(trimmed || REGISTERED_NAME);
+    setDisplayName(trimmed || student?.name_zh || '');
     setEditingName(false);
   }
 
@@ -100,20 +98,24 @@ export default function SettingsScreen() {
   }
 
   // ---------- LOG OUT ----------
-  function handleLogout() {
-    Alert.alert('Log out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Log out',
-        style: 'destructive',
-        onPress: () => {
-          // BACKEND TODO: clear the saved login token here.
+  async function handleLogout() {
+  Alert.alert('Log out', 'Are you sure you want to log out?', [
+    { text: 'Cancel', style: 'cancel' },
+    {
+      text: 'Log out',
+      style: 'destructive',
+      onPress: async () => {
+        try {
+          await logout();
           if (router.canDismiss()) router.dismissAll();
           router.replace('/login');
-        },
+        } catch (error) {
+          Alert.alert('Error', 'Could not log out. Please try again.');
+        }
       },
-    ]);
-  }
+    },
+  ]);
+}
 
   return (
     <View style={styles.screen}>
@@ -141,7 +143,7 @@ export default function SettingsScreen() {
               <Text style={styles.name}>{displayName}</Text>
               <Ionicons name="pencil" size={16} color={Colors.muted} />
             </Pressable>
-            <Text style={styles.studentId}>{STUDENT_ID}</Text>
+            <Text style={styles.studentId}>{student?.student_id ?? ''}</Text>
 
             <Pressable onPress={handleChangePhoto} hitSlop={8}>
               <Text style={styles.link}>Change photo</Text>
@@ -213,7 +215,7 @@ export default function SettingsScreen() {
               style={styles.modalInput}
               value={nameDraft}
               onChangeText={setNameDraft}
-              placeholder={REGISTERED_NAME}
+              placeholder={student?.name_zh ?? 'Display name'}
               placeholderTextColor="#9A948D"
               maxLength={MAX_NAME_LENGTH}
               autoFocus
