@@ -63,3 +63,17 @@ CREATE TABLE tags (
     label  VARCHAR(50) PRIMARY KEY,
     kind   VARCHAR(20)
 );
+
+CREATE TABLE students (
+    student_id      VARCHAR(20) PRIMARY KEY,
+    name_zh         VARCHAR(100) NOT NULL,
+    nickname        VARCHAR(50),
+    password_hash   VARCHAR(255) NOT NULL,
+    department      VARCHAR(100)
+                    REFERENCES departments(name_en)
+                    ON UPDATE CASCADE
+                    ON DELETE SET NULL,
+    entry_year      INTEGER
+                    CHECK (entry_year IS NULL OR entry_year BETWEEN 2000 AND 2100),
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
