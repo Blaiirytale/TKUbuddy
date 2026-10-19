@@ -4,6 +4,7 @@ import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Avatar from '../components/Avatar';
 import BottomBar from '../components/BottomBar';
+import CountdownCard from '../components/CountdownCard';
 import GeneralKnowledge from '../components/GeneralKnowledge';
 import GraduationProgress from '../components/GraduationProgress';
 import QuickAccess from '../components/QuickAccess';
@@ -66,6 +67,9 @@ export default function HomeScreen() {
             total={128}
             onPress={() => router.push('/history')}
           />
+
+          <CountdownCard />
+
 
           <QuickAccess onPressItem={handleQuickAccess} />
 
