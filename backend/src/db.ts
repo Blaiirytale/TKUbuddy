@@ -1,3 +1,4 @@
+
 import dotenv from "dotenv";
 import { Pool, types } from "pg";
 
@@ -5,12 +6,17 @@ dotenv.config();
 
 types.setTypeParser(1700, (value) => parseFloat(value));
 
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error("DATABASE_URL is missing from .env");
+}
+
 const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD
+  connectionString,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 export default pool;
