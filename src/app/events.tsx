@@ -1,15 +1,15 @@
-// src/app/events.tsx
-// Important Dates: every school date that matters, with a countdown for each.
+// src/app/events.tsx (later for event)
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MONO } from '../components/CountdownCard';
 import FlipCountdown from '../components/FlipCountdown';
 import { ThemeColors } from '../constants/colors';
 import { FontScaler, useTheme, useThemedStyles } from '../context/ThemeContext';
 import {
+  CALENDAR_URL,
   CATEGORY_LABELS,
   countdown,
   dateText,
@@ -44,7 +44,8 @@ export default function EventsScreen() {
     registration: colors.teal,
     exam: colors.coral,
     deadline: colors.gold,
-    break: colors.link,
+    holiday: colors.link,
+    semester: colors.muted,
     graduation: '#A98BD9',
   };
 
@@ -123,6 +124,10 @@ export default function EventsScreen() {
               </View>
             </View>
           ))}
+          <Pressable onPress={() => Linking.openURL(CALENDAR_URL)} style={styles.source} hitSlop={8}>
+            <Text style={styles.sourceText}>Dates from TKU's 2026~2027 academic calendar</Text>
+            <Ionicons name="open-outline" size={13} color={colors.white} />
+          </Pressable>
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -164,6 +169,8 @@ const makeStyles = (colors: ThemeColors, fs: FontScaler) =>
       marginBottom: 10,
     },
     pastRow: { opacity: 0.6 },
+    source: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 18 },
+    sourceText: { color: colors.white, opacity: 0.8, fontSize: fs(12), textDecorationLine: 'underline' },
     mini: { backgroundColor: colors.cardLight, borderRadius: 12, paddingVertical: 7, paddingHorizontal: 7, alignItems: 'center' },
     miniUnit: { color: colors.white, fontSize: fs(9), fontWeight: '900', marginTop: 4 },
     rowTitle: { color: colors.white, fontSize: fs(15), fontWeight: 'bold' },

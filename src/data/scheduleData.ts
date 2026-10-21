@@ -22,7 +22,7 @@ export type ChangeResult = { ok: true } | { ok: false; reason: string };
 
 // ---------- FAKE DATA ----------
 // Same 4 courses as "115-1 in progress" in historyData.ts (11 credits).
-const MOCK_ADD_DROP: AddDropPeriod = { start: '2026-09-14', end: '2026-09-25' };
+const MOCK_ADD_DROP: AddDropPeriod = { start: '2026-09-14', end: '2026-09-22' };
 
 const MOCK_COURSES: PlannedCourse[] = [
   {

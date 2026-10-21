@@ -1,6 +1,5 @@
 // src/app/search.tsx
-// Advance Search: find courses with the same filters as TKU's course search,
-// then add them to the Planner.
+
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ReactNode, useEffect, useState } from 'react';
@@ -17,9 +16,9 @@ import {
   Language,
   Level,
   Offering,
+  searchCourses,
   SearchDay,
   SearchFilters,
-  searchCourses,
   SEMESTERS,
   TimeOfDay,
   UNITS,
