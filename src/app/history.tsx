@@ -1,6 +1,4 @@
-// src/app/history.tsx
-// Course History: opened by tapping the Graduation Progress card on Home.
-// View-only: grades come from the school, students can't edit them.
+// src/app/history.tsx (later)
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';

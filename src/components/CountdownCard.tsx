@@ -1,11 +1,11 @@
 // src/components/CountdownCard.tsx
-// Home card: a flip countdown to the next important date.
+
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { FontScaler, useTheme, useThemedStyles } from '../context/ThemeContext';
 import { ThemeColors } from '../constants/colors';
+import { FontScaler, useTheme, useThemedStyles } from '../context/ThemeContext';
 import {
   CATEGORY_LABELS,
   countdown,

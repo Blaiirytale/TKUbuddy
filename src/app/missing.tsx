@@ -1,6 +1,4 @@
 // src/app/missing.tsx
-// Missing Credits: what's left before graduation, based on TKU's
-// "Lacking in Graduation Credits" page.
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';

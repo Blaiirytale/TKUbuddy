@@ -27,7 +27,7 @@ export type PlannedCourse = {
   shortName?: string; // label for the small timetable block (optional, made automatically)
 };
 
-// TKU class periods. Mock times: check them against the official TKU timetable.
+// TKU class periods: each starts at :10 and lasts 50 minutes, from 08:10 to 22:00.
 export const PERIODS: { period: number; start: string; end: string }[] = [
   { period: 1, start: '08:10', end: '09:00' },
   { period: 2, start: '09:10', end: '10:00' },
@@ -39,10 +39,10 @@ export const PERIODS: { period: number; start: string; end: string }[] = [
   { period: 8, start: '15:10', end: '16:00' },
   { period: 9, start: '16:10', end: '17:00' },
   { period: 10, start: '17:10', end: '18:00' },
-  { period: 11, start: '18:20', end: '19:05' },
-  { period: 12, start: '19:10', end: '19:55' },
-  { period: 13, start: '20:10', end: '20:55' },
-  { period: 14, start: '21:00', end: '21:45' },
+  { period: 11, start: '18:10', end: '19:00' },
+  { period: 12, start: '19:10', end: '20:00' },
+  { period: 13, start: '20:10', end: '21:00' },
+  { period: 14, start: '21:10', end: '22:00' },
 ];
 
 // The semester being planned and the credit rules for it.
