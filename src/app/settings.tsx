@@ -127,6 +127,7 @@ export default function SettingsScreen() {
   }
 
   return (
+    
     <View style={styles.screen}>
       <SafeAreaView edges={['top']} style={styles.safe}>
         <View style={styles.header}>
