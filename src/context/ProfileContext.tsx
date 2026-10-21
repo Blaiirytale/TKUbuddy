@@ -1,6 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
 import { getMyProfile, StudentProfile } from '../api/client';
-import { DEMO_STUDENT } from '../data/demo';
 
 export type Language = 'en' | 'zh';
 
@@ -13,7 +12,6 @@ type ProfileState = {
   setLanguage: (language: Language) => void;
   student: StudentProfile | null;
   loadMyProfile: () => Promise<void>;
-  startDemo: () => void; // demo mode: pretend to be the test student, no server
 };
 
 const ProfileContext = createContext<ProfileState | null>(null);
@@ -31,11 +29,6 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     setDisplayName(profile.nickname?.trim() || profile.name_zh);
   }, []);
 
-  const startDemo = useCallback(() => {
-    setStudent(DEMO_STUDENT);
-    setDisplayName(DEMO_STUDENT.nickname || DEMO_STUDENT.name_zh);
-  }, []);
-
   return (
     <ProfileContext.Provider
       value={{ displayName,
@@ -46,7 +39,6 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         setLanguage,
         student,
         loadMyProfile,
-        startDemo,
       }}
     >
       {children}
