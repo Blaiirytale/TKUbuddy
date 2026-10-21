@@ -19,12 +19,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { login } from '../api/client';
 import { Colors } from '../constants/colors';
 import { useProfile } from '../context/ProfileContext';
+import { DEMO_MODE } from '../data/demo';
 
 const APP_NAME = 'TKUBuddy';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { loadMyProfile } = useProfile();
+  const { loadMyProfile, startDemo } = useProfile();
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -139,8 +140,14 @@ export default function LoginScreen() {
     ]).start(() => router.replace('./home'));
   }
 
+  function handleDemo() {
+    logoLoop.current?.stop();
+    lettersLoop.current?.stop();
+    startDemo();
+    router.replace('./home');
+  }
 
-async function handleForgotPassword() {
+  async function handleForgotPassword() {
     try {
       await Linking.openURL('https://sso.tku.edu.tw/j_self/pswdself/goAction.do?ln=en_US');
     } catch {
@@ -220,12 +227,20 @@ async function handleForgotPassword() {
               <Text style={styles.link}>Forgot Password?</Text>
             </Pressable>
 
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
             <Pressable
               onPress={handleLogin}
               style={({ pressed }) => [styles.button, pressed && styles.pressed]}
             >
-              <Text style={styles.buttonText}>LOG IN</Text>
+              <Text style={styles.buttonText}>{loading ? 'LOGGING IN…' : 'LOG IN'}</Text>
             </Pressable>
+
+            {DEMO_MODE ? (
+              <Pressable onPress={handleDemo} style={styles.demo} hitSlop={8}>
+                <Text style={styles.link}>Try demo (no login)</Text>
+              </Pressable>
+            ) : null}
             
           </Animated.View>
         </ScrollView>
@@ -308,6 +323,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pressed: { opacity: 0.7 },
+  errorText: { color: '#FFD3C7', fontSize: 13, fontWeight: 'bold', textAlign: 'center', marginBottom: 12 },
+  demo: { marginTop: 18 },
   buttonText: {
     color: Colors.white,
     fontSize: 16,
