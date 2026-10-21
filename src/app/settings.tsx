@@ -14,48 +14,35 @@ import {
   TextInput,
   View,
 } from 'react-native';
-<<<<<<< HEAD
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { logout } from '../api/client';
-=======
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
->>>>>>> 2b9cef2 (Add background themes and font size settings)
+import { logout } from '../api/client';
 import Avatar from '../components/Avatar';
-import { THEMES, ThemeColors } from '../constants/colors';
+import { ThemeColors, THEMES } from '../constants/colors';
 import { useProfile } from '../context/ProfileContext';
 import { FONT_SIZES, FontScaler, useTheme, useThemedStyles } from '../context/ThemeContext';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
-<<<<<<< HEAD
-=======
-// TEMPORARY: will come from the login later
-const REGISTERED_NAME = 'Pramesti';
-const STUDENT_ID = '411000001';
->>>>>>> 2b9cef2 (Add background themes and font size settings)
 const MAX_NAME_LENGTH = 30;
 
 const LANGUAGE_LABELS = { en: 'English', zh: '中文' };
 
 export default function SettingsScreen() {
   const router = useRouter();
-<<<<<<< HEAD
-  const { displayName, setDisplayName, photoUri, setPhotoUri, language, setLanguage, student } =
-=======
   const insets = useSafeAreaInsets();
-  const { displayName, setDisplayName, photoUri, setPhotoUri, language, setLanguage } =
->>>>>>> 2b9cef2 (Add background themes and font size settings)
+  const { displayName, setDisplayName, photoUri, setPhotoUri, language, setLanguage, student } =
     useProfile();
   const { colors, theme, setThemeId, fontSizeId, setFontSizeId } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
+  // the name pop-up: whether it's open, and the text being typed
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
 
-
+  // the background (theme) picker: whether it's open
   const [choosingTheme, setChoosingTheme] = useState(false);
 
-  // display
+  // ---------- DISPLAY NAME ----------
   function openNameEditor() {
     setNameDraft(displayName);
     setEditingName(true);
@@ -67,17 +54,12 @@ export default function SettingsScreen() {
 
   function saveName() {
     const trimmed = nameDraft.trim();
-<<<<<<< HEAD
-
+    // an empty name goes back to the registered name
     setDisplayName(trimmed || student?.name_zh || '');
-=======
-    
-    setDisplayName(trimmed || REGISTERED_NAME);
->>>>>>> 2b9cef2 (Add background themes and font size settings)
     setEditingName(false);
   }
 
-  // pfp
+  // ---------- PROFILE PICTURE ----------
   async function pickFromLibrary() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -124,37 +106,25 @@ export default function SettingsScreen() {
     ]);
   }
 
-<<<<<<< HEAD
   // ---------- LOG OUT ----------
-  async function handleLogout() {
-  Alert.alert('Log out', 'Are you sure you want to log out?', [
-    { text: 'Cancel', style: 'cancel' },
-    {
-      text: 'Log out',
-      style: 'destructive',
-      onPress: async () => {
-        try {
-          await logout();
-=======
-  //logout
   function handleLogout() {
     Alert.alert('Log out', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Log out',
         style: 'destructive',
-        onPress: () => {
-          // BACKEND TODO: clear the saved login token here.
->>>>>>> 2b9cef2 (Add background themes and font size settings)
-          if (router.canDismiss()) router.dismissAll();
-          router.replace('/login');
-        } catch (error) {
-          Alert.alert('Error', 'Could not log out. Please try again.');
-        }
+        onPress: async () => {
+          try {
+            await logout();
+            if (router.canDismiss()) router.dismissAll();
+            router.replace('/login');
+          } catch (error) {
+            Alert.alert('Error', 'Could not log out. Please try again.');
+          }
+        },
       },
-    },
-  ]);
-}
+    ]);
+  }
 
   return (
     <View style={styles.screen}>
@@ -277,7 +247,7 @@ export default function SettingsScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      {/* BACKGROUND (THEME) PICKER */}
+      {/* BACKGROUND (THEME) PICKER: slides up from the bottom */}
       <Modal
         visible={choosingTheme}
         transparent
@@ -398,7 +368,7 @@ export default function SettingsScreen() {
   );
 }
 
-
+// ---------- ONE ROW IN A SETTINGS CARD ----------
 type RowProps = {
   icon: IconName;
   label: string;
