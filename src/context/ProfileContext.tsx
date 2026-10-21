@@ -1,4 +1,5 @@
-import { createContext, ReactNode, useContext, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
+import { getMyProfile, StudentProfile } from '../api/client';
 
 export type Language = 'en' | 'zh';
 
@@ -9,19 +10,36 @@ type ProfileState = {
   setPhotoUri: (uri: string | null) => void;
   language: Language;
   setLanguage: (language: Language) => void;
+  student: StudentProfile | null;
+  loadMyProfile: () => Promise<void>;
 };
 
 const ProfileContext = createContext<ProfileState | null>(null);
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  // BACKEND TODO: start with the registered name from the login instead.
-  const [displayName, setDisplayName] = useState('Pramesti');
+  const [displayName, setDisplayName] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>('en');
+  const [student, setStudent] = useState<StudentProfile | null>(null);
+
+  const loadMyProfile = useCallback(async () => {
+    const profile = await getMyProfile();
+
+    setStudent(profile);
+    setDisplayName(profile.nickname?.trim() || profile.name_zh);
+  }, []);
 
   return (
     <ProfileContext.Provider
-      value={{ displayName, setDisplayName, photoUri, setPhotoUri, language, setLanguage }}
+      value={{ displayName,
+        setDisplayName,
+        photoUri,
+        setPhotoUri,
+        language,
+        setLanguage,
+        student,
+        loadMyProfile,
+      }}
     >
       {children}
     </ProfileContext.Provider>
