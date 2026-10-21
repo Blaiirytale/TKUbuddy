@@ -220,11 +220,14 @@ async function handleForgotPassword() {
               <Text style={styles.link}>Forgot Password?</Text>
             </Pressable>
 
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+
             <Pressable
               onPress={handleLogin}
               style={({ pressed }) => [styles.button, pressed && styles.pressed]}
             >
-              <Text style={styles.buttonText}>LOG IN</Text>
+              <Text style={styles.buttonText}>{loading ? 'LOGGING IN…' : 'LOG IN'}</Text>
             </Pressable>
             
           </Animated.View>
@@ -308,6 +311,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pressed: { opacity: 0.7 },
+  errorText: {
+    color: '#FFD3C7',
+    fontSize: 13,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
   buttonText: {
     color: Colors.white,
     fontSize: 16,
